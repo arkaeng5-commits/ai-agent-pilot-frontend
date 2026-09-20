@@ -1,102 +1,283 @@
-<script>
-  const PROJECT_ID = "57495c44-ee23-4be7-ade2-b70b6b4c8416";
-  const GRAPH_URL = "https://ai-agent-pilot-backend.onrender.com/run_graph";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Any-Topic AI Pilot</title>
 
-  const chat = document.getElementById("chat");
-  const form = document.getElementById("chat-form");
-  const roleInput = document.getElementById("role");
-  const messageInput = document.getElementById("message");
-  const sendButton = document.getElementById("send-button");
-  const status = document.getElementById("status");
-
-  function addMessage(role, text, customLabel = null) {
-    const box = document.createElement("article");
-    box.className = `message ${role === "assistant" ? "assistant" : "user"}`;
-
-    const label = document.createElement("span");
-    label.className = "label";
-    label.textContent = customLabel || role;
-
-    const content = document.createElement("div");
-    content.textContent = text;
-
-    box.append(label, content);
-    chat.appendChild(box);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  addMessage(
-    "assistant",
-    "Choose a role, write a message, and press Send.",
-    "AI Pilot"
-  );
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const text = messageInput.value.trim();
-    const role = roleInput.value;
-
-    if (!text) return;
-
-    if (
-      PROJECT_ID.startsWith("REPLACE_ME") ||
-      GRAPH_URL.startsWith("REPLACE_ME")
-    ) {
-      status.textContent = "Set PROJECT_ID and GRAPH_URL first.";
-      return;
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    addMessage("user", text, role.toUpperCase());
-    messageInput.value = "";
-    sendButton.disabled = true;
-    status.textContent = "The agents are reviewing the topic…";
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f3f6fb;
+      color: #172033;
+      font-family: Arial, sans-serif;
+    }
 
-    try {
-      const response = await fetch(GRAPH_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          project_id: PROJECT_ID,
-          role: role,
-          text: text
-        })
-      });
+    .app {
+      width: min(760px, calc(100% - 32px));
+      margin: 32px auto;
+      background: #ffffff;
+      border: 1px solid #dce3ef;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(28, 39, 64, 0.10);
+      overflow: hidden;
+    }
 
-      const data = await response.json();
+    header {
+      padding: 22px 24px;
+      color: #ffffff;
+      background: #172b4d;
+    }
 
-      if (!response.ok) {
-        throw new Error(
-          data.detail || `Request failed: HTTP ${response.status}`
-        );
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    header p {
+      margin: 0;
+      color: #dce8ff;
+    }
+
+    #chat {
+      height: 420px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #fbfcff;
+    }
+
+    .message {
+      max-width: 82%;
+      margin: 10px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.user {
+      margin-left: auto;
+      color: #ffffff;
+      background: #2667d9;
+    }
+
+    .message.assistant {
+      background: #e9eef8;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 12px;
+      font-weight: bold;
+      opacity: 0.78;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      gap: 10px;
+      padding: 16px;
+      border-top: 1px solid #dce3ef;
+    }
+
+    select,
+    textarea,
+    button {
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    select,
+    textarea {
+      border: 1px solid #bfc9d8;
+      padding: 10px;
+    }
+
+    textarea {
+      min-height: 48px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      padding: 0 18px;
+      color: #ffffff;
+      background: #1d6f42;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+
+    #status {
+      min-height: 24px;
+      padding: 0 16px 16px;
+      color: #56627a;
+      font-size: 14px;
+    }
+
+    @media (max-width: 620px) {
+      form {
+        grid-template-columns: 1fr;
       }
 
-      const agentMessages = data.agent_messages || [];
-
-      for (const message of agentMessages) {
-        addMessage(
-          "assistant",
-          message.text,
-          message.agent
-        );
+      button {
+        min-height: 44px;
       }
+    }
+  </style>
+</head>
 
-      status.textContent = `Project status: ${data.validation_status}.`;
-    } catch (error) {
-      console.error(error);
+<body>
+  <main class="app">
+    <header>
+      <h1>Any-Topic AI Pilot</h1>
+      <p>Finance, R&amp;D, and CEO perspectives for any discussion.</p>
+    </header>
+
+    <section id="chat" aria-live="polite"></section>
+
+    <form id="chat-form">
+      <select id="role" aria-label="Your role">
+        <option value="finance">Finance</option>
+        <option value="rnd">R&amp;D</option>
+        <option value="ceo">CEO</option>
+      </select>
+
+      <textarea
+        id="message"
+        placeholder="Describe an idea, problem, proposal, or decision you want the team to review."
+        aria-label="Message"
+        required
+      ></textarea>
+
+      <button id="send-button" type="submit">Send</button>
+    </form>
+
+    <div id="status"></div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const PROJECT_ID = "57495c44-ee23-4be7-ade2-b70b6b4c8416";
+      const GRAPH_URL = "https://ai-agent-pilot-backend.onrender.com/run_graph";
+
+      const chat = document.getElementById("chat");
+      const form = document.getElementById("chat-form");
+      const roleInput = document.getElementById("role");
+      const messageInput = document.getElementById("message");
+      const sendButton = document.getElementById("send-button");
+      const status = document.getElementById("status");
+
+      function addMessage(type, text, label) {
+        const box = document.createElement("article");
+        box.className = `message ${type}`;
+
+        const name = document.createElement("span");
+        name.className = "label";
+        name.textContent = label;
+
+        const content = document.createElement("div");
+        content.textContent = text;
+
+        box.append(name, content);
+        chat.appendChild(box);
+        chat.scrollTop = chat.scrollHeight;
+      }
 
       addMessage(
         "assistant",
-        "The request did not complete. Check Render Logs.",
-        "System"
+        "Choose a role, write a message, and press Send.",
+        "AI Pilot"
       );
 
-      status.textContent = error.message;
-    } finally {
-      sendButton.disabled = false;
-      messageInput.focus();
-    }
-  });
-</script>
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const text = messageInput.value.trim();
+        const role = roleInput.value;
+
+        if (!text) {
+          return;
+        }
+
+        addMessage("user", text, role.toUpperCase());
+        messageInput.value = "";
+        sendButton.disabled = true;
+        status.textContent = "The agents are reviewing the topic…";
+
+        try {
+          const response = await fetch(GRAPH_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              project_id: PROJECT_ID,
+              role: role,
+              text: text
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data.detail || `Request failed: HTTP ${response.status}`
+            );
+          }
+
+          /*
+            Revised backend returns three real LLM replies:
+            Finance Agent, R&D Agent, and CEO Agent.
+          */
+          if (Array.isArray(data.agent_messages)) {
+            for (const message of data.agent_messages) {
+              addMessage(
+                "assistant",
+                message.text,
+                message.agent
+              );
+            }
+          } else if (data.ai_reply) {
+            /*
+              This fallback supports your earlier backend temporarily.
+            */
+            addMessage(
+              "assistant",
+              data.ai_reply,
+              "AI Leadership Team"
+            );
+          } else {
+            throw new Error("The backend returned no AI reply.");
+          }
+
+          status.textContent =
+            `Project status: ${data.validation_status || "updated"}.`;
+        } catch (error) {
+          console.error(error);
+
+          addMessage(
+            "assistant",
+            "The request did not complete. Check Render Logs for the exact error.",
+            "System"
+          );
+
+          status.textContent = error.message;
+        } finally {
+          sendButton.disabled = false;
+          messageInput.focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
