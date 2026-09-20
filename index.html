@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Any-Topic AI Pilot</title>
+  <title>Section and CEO Project Pilot</title>
 
   <style>
     * {
@@ -19,13 +19,13 @@
     }
 
     .app {
-      width: min(760px, calc(100% - 32px));
+      width: min(900px, calc(100% - 32px));
       margin: 32px auto;
+      overflow: hidden;
       background: #ffffff;
       border: 1px solid #dce3ef;
       border-radius: 16px;
       box-shadow: 0 12px 32px rgba(28, 39, 64, 0.10);
-      overflow: hidden;
     }
 
     header {
@@ -44,15 +44,49 @@
       color: #dce8ff;
     }
 
+    .warning {
+      padding: 10px 16px;
+      color: #704600;
+      background: #fff3cd;
+      border-bottom: 1px solid #f0d58a;
+      font-size: 13px;
+    }
+
+    .controls {
+      padding: 16px;
+      border-bottom: 1px solid #dce3ef;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    select,
+    textarea,
+    button {
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #bfc9d8;
+    }
+
     #chat {
-      height: 420px;
+      height: 430px;
       overflow-y: auto;
       padding: 20px;
       background: #fbfcff;
     }
 
     .message {
-      max-width: 82%;
+      max-width: 84%;
       margin: 10px 0;
       padding: 12px 14px;
       border-radius: 12px;
@@ -60,7 +94,8 @@
       line-height: 1.45;
     }
 
-    .message.user {
+    .message.employee,
+    .message.ceo {
       margin-left: auto;
       color: #ffffff;
       background: #2667d9;
@@ -80,33 +115,20 @@
 
     form {
       display: grid;
-      grid-template-columns: 150px 1fr auto;
+      grid-template-columns: 1fr auto;
       gap: 10px;
       padding: 16px;
       border-top: 1px solid #dce3ef;
     }
 
-    select,
-    textarea,
-    button {
-      border-radius: 8px;
-      font: inherit;
-    }
-
-    select,
     textarea {
-      border: 1px solid #bfc9d8;
-      padding: 10px;
-    }
-
-    textarea {
-      min-height: 48px;
+      min-height: 52px;
       resize: vertical;
     }
 
     button {
+      min-width: 100px;
       border: 0;
-      padding: 0 18px;
       color: #ffffff;
       background: #1d6f42;
       cursor: pointer;
@@ -118,7 +140,7 @@
     }
 
     #status {
-      min-height: 24px;
+      min-height: 28px;
       padding: 0 16px 16px;
       color: #56627a;
       font-size: 14px;
@@ -139,23 +161,33 @@
 <body>
   <main class="app">
     <header>
-      <h1>Any-Topic AI Pilot</h1>
-      <p>Finance, R&amp;D, and CEO perspectives for any discussion.</p>
+      <h1>Section and CEO Project Pilot</h1>
+      <p>Sections propose values. CEO decides official and secret values.</p>
     </header>
+
+    <div class="warning">
+      Testing mode: any person can select CEO. Add real login/access control later.
+    </div>
+
+    <section class="controls">
+      <label>
+        Your section
+        <select id="section-tag">
+          <option value="finance">Finance</option>
+          <option value="rnd">R&amp;D</option>
+          <option value="operations">Operations</option>
+          <option value="marketing">Marketing</option>
+          <option value="ceo">CEO</option>
+        </select>
+      </label>
+    </section>
 
     <section id="chat" aria-live="polite"></section>
 
     <form id="chat-form">
-      <select id="role" aria-label="Your role">
-        <option value="finance">Finance</option>
-        <option value="rnd">R&amp;D</option>
-        <option value="ceo">CEO</option>
-      </select>
-
       <textarea
         id="message"
-        placeholder="Describe an idea, problem, proposal, or decision you want the team to review."
-        aria-label="Message"
+        placeholder="Write a message for your section."
         required
       ></textarea>
 
@@ -169,50 +201,122 @@
     document.addEventListener("DOMContentLoaded", () => {
       const PROJECT_ID = "57495c44-ee23-4be7-ade2-b70b6b4c8416";
       const GRAPH_URL = "https://ai-agent-pilot-backend.onrender.com/run_graph";
+      const API_BASE_URL = GRAPH_URL.replace(/\/run_graph\/?$/, "");
 
+      const sectionInput = document.getElementById("section-tag");
       const chat = document.getElementById("chat");
       const form = document.getElementById("chat-form");
-      const roleInput = document.getElementById("role");
       const messageInput = document.getElementById("message");
       const sendButton = document.getElementById("send-button");
       const status = document.getElementById("status");
+
+      function sectionName(section) {
+        return {
+          finance: "Finance",
+          rnd: "R&D",
+          operations: "Operations",
+          marketing: "Marketing",
+          ceo: "CEO"
+        }[section] || section;
+      }
 
       function addMessage(type, text, label) {
         const box = document.createElement("article");
         box.className = `message ${type}`;
 
-        const name = document.createElement("span");
-        name.className = "label";
-        name.textContent = label;
+        const title = document.createElement("span");
+        title.className = "label";
+        title.textContent = label;
 
         const content = document.createElement("div");
         content.textContent = text;
 
-        box.append(name, content);
+        box.append(title, content);
         chat.appendChild(box);
         chat.scrollTop = chat.scrollHeight;
       }
 
-      addMessage(
-        "assistant",
-        "Choose a role, write a message, and press Send.",
-        "AI Pilot"
-      );
+      function clearChat() {
+        chat.innerHTML = "";
+      }
+
+      async function loadSectionChat() {
+        clearChat();
+
+        const section = sectionInput.value;
+        status.textContent = `Loading ${sectionName(section)} chat…`;
+
+        try {
+          const url =
+            `${API_BASE_URL}/projects/${PROJECT_ID}/messages` +
+            `?section_tag=${encodeURIComponent(section)}`;
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || "Could not load chat.");
+          }
+
+          const messages = data.messages || [];
+
+          if (messages.length === 0) {
+            addMessage(
+              "assistant",
+              "No messages exist yet in this section.",
+              "System"
+            );
+          }
+
+          for (const message of messages) {
+            const label =
+              message.metadata?.label ||
+              (message.actor_type === "assistant"
+                ? "Assistant"
+                : sectionName(message.section_tag));
+
+            addMessage(
+              message.actor_type,
+              message.text,
+              label
+            );
+          }
+
+          status.textContent = `${sectionName(section)} chat loaded.`;
+        } catch (error) {
+          console.error(error);
+          addMessage("assistant", error.message, "System");
+          status.textContent = error.message;
+        }
+      }
+
+      sectionInput.addEventListener("change", () => {
+        messageInput.placeholder = sectionInput.value === "ceo"
+          ? "Ask about proposals, or explicitly set, revise, or define a secret parameter."
+          : "Write a message for your section.";
+
+        loadSectionChat();
+      });
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const text = messageInput.value.trim();
-        const role = roleInput.value;
+        const section = sectionInput.value;
 
         if (!text) {
           return;
         }
 
-        addMessage("user", text, role.toUpperCase());
+        addMessage(
+          section === "ceo" ? "ceo" : "employee",
+          text,
+          sectionName(section)
+        );
+
         messageInput.value = "";
         sendButton.disabled = true;
-        status.textContent = "The agents are reviewing the topic…";
+        status.textContent = "Processing message…";
 
         try {
           const response = await fetch(GRAPH_URL, {
@@ -222,7 +326,7 @@
             },
             body: JSON.stringify({
               project_id: PROJECT_ID,
-              role: role,
+              section_tag: section,
               text: text
             })
           });
@@ -235,48 +339,28 @@
             );
           }
 
-          /*
-            Revised backend returns three real LLM replies:
-            Finance Agent, R&D Agent, and CEO Agent.
-          */
-          if (Array.isArray(data.agent_messages)) {
-            for (const message of data.agent_messages) {
-              addMessage(
-                "assistant",
-                message.text,
-                message.agent
-              );
-            }
-          } else if (data.ai_reply) {
-            /*
-              This fallback supports your earlier backend temporarily.
-            */
-            addMessage(
-              "assistant",
-              data.ai_reply,
-              "AI Leadership Team"
-            );
-          } else {
-            throw new Error("The backend returned no AI reply.");
-          }
-
-          status.textContent =
-            `Project status: ${data.validation_status || "updated"}.`;
-        } catch (error) {
-          console.error(error);
-
           addMessage(
             "assistant",
-            "The request did not complete. Check Render Logs for the exact error.",
-            "System"
+            data.reply,
+            section === "ceo"
+              ? "CEO Assistant"
+              : `${sectionName(section)} Assistant`
           );
 
+          status.textContent = data.decisions_saved > 0
+            ? `CEO decision saved: ${data.decisions_saved} parameter(s) updated.`
+            : "Message saved.";
+        } catch (error) {
+          console.error(error);
+          addMessage("assistant", error.message, "System");
           status.textContent = error.message;
         } finally {
           sendButton.disabled = false;
           messageInput.focus();
         }
       });
+
+      loadSectionChat();
     });
   </script>
 </body>
