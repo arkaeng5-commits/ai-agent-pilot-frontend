@@ -1,367 +1,320 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Section and CEO Project Pilot</title>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Any-Topic AI Pilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
+    /* ── Token system ─────────────────────────────────────────── */
+    :root {
+      --bg:          oklch(97% 0.005 250);
+      --surface:     oklch(100% 0 0);
+      --surface-2:   oklch(94% 0.008 250);
+      --border:      oklch(88% 0.010 250);
+      --text:        oklch(18% 0.015 250);
+      --text-muted:  oklch(50% 0.015 250);
+      --accent:      oklch(52% 0.18 250);
+      --accent-fg:   oklch(99% 0 0);
+      --accent-soft: oklch(94% 0.04 250);
+      --user-bg:     oklch(52% 0.18 250);
+      --user-fg:     oklch(99% 0 0);
+      --bot-bg:      oklch(94% 0.008 250);
+      --bot-fg:      oklch(18% 0.015 250);
+      --warn-bg:     oklch(96% 0.06 80);
+      --warn-border: oklch(78% 0.14 75);
+      --warn-text:   oklch(38% 0.12 60);
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   18px;
+      --shadow:      0 1px 3px oklch(0% 0 0 / .08), 0 4px 12px oklch(0% 0 0 / .06);
     }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:          oklch(14% 0.010 250);
+        --surface:     oklch(19% 0.012 250);
+        --surface-2:   oklch(23% 0.012 250);
+        --border:      oklch(30% 0.012 250);
+        --text:        oklch(93% 0.008 250);
+        --text-muted:  oklch(60% 0.010 250);
+        --accent:      oklch(68% 0.16 250);
+        --accent-fg:   oklch(10% 0 0);
+        --accent-soft: oklch(25% 0.05 250);
+        --user-bg:     oklch(62% 0.16 250);
+        --user-fg:     oklch(10% 0 0);
+        --bot-bg:      oklch(23% 0.012 250);
+        --bot-fg:      oklch(93% 0.008 250);
+        --warn-bg:     oklch(22% 0.05 75);
+        --warn-border: oklch(55% 0.12 70);
+        --warn-text:   oklch(80% 0.10 70);
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      background: #f3f6fb;
-      color: #172033;
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', 'Vazirmatn', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
     }
 
+    /* ── App shell ────────────────────────────────────────────── */
     .app {
-      width: min(900px, calc(100% - 32px));
-      margin: 32px auto;
+      width: min(760px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      background: #ffffff;
-      border: 1px solid #dce3ef;
-      border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(28, 39, 64, 0.10);
     }
 
     header {
-      padding: 22px 24px;
-      color: #ffffff;
-      background: #172b4d;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
     }
-
-    h1 {
-      margin: 0 0 6px;
-      font-size: 22px;
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
     }
-
     header p {
-      margin: 0;
-      color: #dce8ff;
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-top: 3px;
     }
 
-    .warning {
-      padding: 10px 16px;
-      color: #704600;
-      background: #fff3cd;
-      border-bottom: 1px solid #f0d58a;
-      font-size: 13px;
-    }
-
-    .controls {
-      padding: 16px;
-      border-bottom: 1px solid #dce3ef;
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    select,
-    textarea,
-    button {
-      border-radius: 8px;
-      font: inherit;
-    }
-
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #bfc9d8;
-    }
-
+    /* ── Message list ─────────────────────────────────────────── */
     #chat {
-      height: 430px;
+      flex: 1;
+      height: 420px;
       overflow-y: auto;
-      padding: 20px;
-      background: #fbfcff;
+      padding: 20px 20px 8px;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #chat::-webkit-scrollbar { width: 6px; }
+    #chat::-webkit-scrollbar-track { background: transparent; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .message { display: flex; flex-direction: column; max-width: 82%; gap: 4px; }
+    .message.user   { align-self: flex-end; align-items: flex-end; }
+    .message.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .msg-label {
+      font-size: .72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: 0 4px;
     }
 
-    .message {
-      max-width: 84%;
-      margin: 10px 0;
-      padding: 12px 14px;
-      border-radius: 12px;
+    .bubble {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: .9rem;
+      line-height: 1.55;
       white-space: pre-wrap;
-      line-height: 1.45;
+      word-break: break-word;
     }
+    .message.user     .bubble { background: var(--user-bg); color: var(--user-fg); border-bottom-right-radius: var(--radius-sm); }
+    .message.assistant .bubble { background: var(--bot-bg);  color: var(--bot-fg);  border-bottom-left-radius: var(--radius-sm); }
 
-    .message.employee,
-    .message.ceo {
-      margin-left: auto;
-      color: #ffffff;
-      background: #2667d9;
+    /* ── Conflict panel ───────────────────────────────────────── */
+    #conflict-panel {
+      display: none;
+      margin: 0 20px;
+      padding: 10px 14px;
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-md);
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      font-size: .84rem;
+      line-height: 1.5;
+      gap: 8px;
+      align-items: flex-start;
     }
+    #conflict-panel.visible { display: flex; }
+    #conflict-panel svg { flex-shrink: 0; margin-top: 2px; }
+    #conflict-panel p { margin: 0; }
 
-    .message.assistant {
-      background: #e9eef8;
+    /* ── Status bar ───────────────────────────────────────────── */
+    #status-bar {
+      padding: 6px 20px;
+      font-size: .78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
     }
-
-    .label {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 12px;
-      font-weight: bold;
-      opacity: 0.78;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .03em;
     }
+    .badge-pending  { background: var(--surface-2); color: var(--text-muted); }
+    .badge-ok       { background: oklch(92% 0.08 155); color: oklch(32% 0.14 155); }
+    .badge-conflict { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
 
+    /* ── Form ─────────────────────────────────────────────────── */
+    .form-wrap {
+      padding: 12px 20px 20px;
+      border-top: 1px solid var(--border);
+    }
     form {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      padding: 16px;
-      border-top: 1px solid #dce3ef;
+      grid-template-columns: 148px 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--text-muted); font-weight: 500; }
+
+    select, textarea {
+      font-family: inherit;
+      font-size: .88rem;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 11px;
+      outline: none;
+      transition: border-color .15s;
+      resize: none;
+    }
+    select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px oklch(52% 0.18 250 / .15);
     }
 
-    textarea {
-      min-height: 52px;
-      resize: vertical;
-    }
+    textarea { min-height: 72px; max-height: 180px; overflow-y: auto; line-height: 1.5; }
 
-    button {
-      min-width: 100px;
-      border: 0;
-      color: #ffffff;
-      background: #1d6f42;
+    button[type="submit"] {
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 9px 20px;
       cursor: pointer;
+      align-self: end;
+      height: 40px;
+      transition: opacity .15s, transform .1s;
+    }
+    button[type="submit"]:hover:not(:disabled) { opacity: .88; }
+    button[type="submit"]:active:not(:disabled) { transform: scale(.97); }
+    button[type="submit"]:disabled { opacity: .45; cursor: not-allowed; }
+    button[type="submit"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── RTL support ──────────────────────────────────────────── */
+    [dir="rtl"] { font-family: 'Vazirmatn', 'Inter', system-ui, sans-serif; }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 580px) {
+      #chat { height: 340px; }
+      form { grid-template-columns: 1fr; }
+      button[type="submit"] { width: 100%; }
     }
 
-    button:disabled {
-      cursor: wait;
-      opacity: 0.6;
-    }
-
-    #status {
-      min-height: 28px;
-      padding: 0 16px 16px;
-      color: #56627a;
-      font-size: 14px;
-    }
-
-    @media (max-width: 620px) {
-      form {
-        grid-template-columns: 1fr;
-      }
-
-      button {
-        min-height: 44px;
-      }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
-
 <body>
-  <main class="app">
-    <header>
-      <h1>Section and CEO Project Pilot</h1>
-      <p>Sections propose values. CEO decides official and secret values.</p>
-    </header>
+<div class="app" role="main">
+  <header>
+    <h1>Any-Topic AI Pilot</h1>
+    <p>Finance, R&D, and CEO perspectives for any discussion.</p>
+  </header>
 
-    <div class="warning">
-      Testing mode: any person can select CEO. Add real login/access control later.
-    </div>
+  <section id="chat" aria-live="polite" aria-label="Conversation"></section>
 
-    <section class="controls">
-      <label>
-        Your section
-        <select id="section-tag">
+  <div id="conflict-panel" role="alert" aria-live="assertive">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      <line x1="8" y1="6.5" x2="8" y2="9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="8" cy="11.25" r=".75" fill="currentColor"/>
+    </svg>
+    <p id="conflict-text"></p>
+  </div>
+
+  <div id="status-bar">
+    <span id="status-text"></span>
+  </div>
+
+  <div class="form-wrap">
+    <form id="chat-form" novalidate>
+      <label for="role-select">
+        Role
+        <select id="role-select" name="role" required>
           <option value="finance">Finance</option>
           <option value="rnd">R&amp;D</option>
-          <option value="operations">Operations</option>
-          <option value="marketing">Marketing</option>
           <option value="ceo">CEO</option>
         </select>
       </label>
-    </section>
-
-    <section id="chat" aria-live="polite"></section>
-
-    <form id="chat-form">
-      <textarea
-        id="message"
-        placeholder="Write a message for your section."
-        required
-      ></textarea>
-
-      <button id="send-button" type="submit">Send</button>
+      <label for="msg-input">
+        Message
+        <textarea
+          id="msg-input"
+          name="text"
+          required
+          placeholder="Describe an idea, problem, proposal, or decision…"
+          rows="3"
+          aria-label="Your message"
+        ></textarea>
+      </label>
+      <button type="submit" id="send-btn">Send</button>
     </form>
+  </div>
+</div>
 
-    <div id="status"></div>
-  </main>
+<script>
+  // ── Config ──────────────────────────────────────────────────────
+  const PROJECT_ID = "REPLACE_ME_WITH_YOUR_PROJECT_UUID";
+  const GRAPH_URL  = "REPLACE_ME_WITH_YOUR_RENDER_URL/run_graph";
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const PROJECT_ID = "57495c44-ee23-4be7-ade2-b70b6b4c8416";
-      const GRAPH_URL = "https://ai-agent-pilot-backend.onrender.com/run_graph";
-      const API_BASE_URL = GRAPH_URL.replace(/\/run_graph\/?$/, "");
+  // ── RTL detection ───────────────────────────────────────────────
+  function isRtl(text) {
+    return /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+  }
 
-      const sectionInput = document.getElementById("section-tag");
-      const chat = document.getElementById("chat");
-      const form = document.getElementById("chat-form");
-      const messageInput = document.getElementById("message");
-      const sendButton = document.getElementById("send-button");
-      const status = document.getElementById("status");
+  // ── Role labels ─────────────────────────────────────────────────
+  const roleLabel = {
+    finance: "Finance",
+    rnd:     "R&D",
+    ceo:     "CEO",
+    assistant: "AI Team",
+  };
 
-      function sectionName(section) {
-        return {
-          finance: "Finance",
-          rnd: "R&D",
-          operations: "Operations",
-          marketing: "Marketing",
-          ceo: "CEO"
-        }[section] || section;
-      }
+  // ── DOM refs ────────────────────────────────────────────────────
+  const chat          = document.getElementById("chat");
+  const form          = document.getElementById("chat-form");
+  const roleSelect    = document.getElementById("role-select");
+  const msgInput      = document.getElementById("msg-input");
+  const sendBtn       = document.getElementById("send-btn");
+  const statusText    = document.getElementById("status-text");
+  const conflictPanel = document.getElementById("conflict-panel");
+  const conflictText  = document.getElementById("conflict-text");
 
-      function addMessage(type, text, label) {
-        const box = document.createElement("article");
-        box.className = `message ${type}`;
-
-        const title = document.createElement("span");
-        title.className = "label";
-        title.textContent = label;
-
-        const content = document.createElement("div");
-        content.textContent = text;
-
-        box.append(title, content);
-        chat.appendChild(box);
-        chat.scrollTop = chat.scrollHeight;
-      }
-
-      function clearChat() {
-        chat.innerHTML = "";
-      }
-
-      async function loadSectionChat() {
-        clearChat();
-
-        const section = sectionInput.value;
-        status.textContent = `Loading ${sectionName(section)} chat…`;
-
-        try {
-          const url =
-            `${API_BASE_URL}/projects/${PROJECT_ID}/messages` +
-            `?section_tag=${encodeURIComponent(section)}`;
-
-          const response = await fetch(url);
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.detail || "Could not load chat.");
-          }
-
-          const messages = data.messages || [];
-
-          if (messages.length === 0) {
-            addMessage(
-              "assistant",
-              "No messages exist yet in this section.",
-              "System"
-            );
-          }
-
-          for (const message of messages) {
-            const label =
-              message.metadata?.label ||
-              (message.actor_type === "assistant"
-                ? "Assistant"
-                : sectionName(message.section_tag));
-
-            addMessage(
-              message.actor_type,
-              message.text,
-              label
-            );
-          }
-
-          status.textContent = `${sectionName(section)} chat loaded.`;
-        } catch (error) {
-          console.error(error);
-          addMessage("assistant", error.message, "System");
-          status.textContent = error.message;
-        }
-      }
-
-      sectionInput.addEventListener("change", () => {
-        messageInput.placeholder = sectionInput.value === "ceo"
-          ? "Ask about proposals, or explicitly set, revise, or define a secret parameter."
-          : "Write a message for your section.";
-
-        loadSectionChat();
-      });
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const text = messageInput.value.trim();
-        const section = sectionInput.value;
-
-        if (!text) {
-          return;
-        }
-
-        addMessage(
-          section === "ceo" ? "ceo" : "employee",
-          text,
-          sectionName(section)
-        );
-
-        messageInput.value = "";
-        sendButton.disabled = true;
-        status.textContent = "Processing message…";
-
-        try {
-          const response = await fetch(GRAPH_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              project_id: PROJECT_ID,
-              section_tag: section,
-              text: text
-            })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(
-              data.detail || `Request failed: HTTP ${response.status}`
-            );
-          }
-
-          addMessage(
-            "assistant",
-            data.reply,
-            section === "ceo"
-              ? "CEO Assistant"
-              : `${sectionName(section)} Assistant`
-          );
-
-          status.textContent = data.decisions_saved > 0
-            ? `CEO decision saved: ${data.decisions_saved} parameter(s) updated.`
-            : "Message saved.";
-        } catch (error) {
-          console.error(error);
-          addMessage("assistant", error.message, "System");
-          status.textContent = error.message;
-        } finally {
-          sendButton.disabled = false;
-          messageInput.focus();
-        }
-      });
-
-      loadSectionChat();
-    });
-  </script>
-</body>
-</html>
+  // ── Auto-grow textarea ──────────────────────────────────────────
+  msgInput.addEventListener("input", () => {
+    msgInput.style.height = "auto";
+    msgInput
